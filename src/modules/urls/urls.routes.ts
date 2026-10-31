@@ -1,11 +1,16 @@
 import { Router, type Request, type RequestHandler } from 'express';
+import type { AnalyticsService } from '../analytics/analytics.service.js';
 import { getAuthUser } from '../auth/auth.middleware.js';
 import { HttpError } from '../../shared/http-error.js';
 import { CODE_PATTERN, type UrlsService } from './urls.service.js';
 import type { ShortUrl } from './urls.types.js';
 
+export function buildShortUrl(req: Request, code: string): string {
+  return `${req.protocol}://${req.get('host')}/${code}`;
+}
+
 function toResponse(req: Request, url: ShortUrl) {
-  return { ...url, shortUrl: `${req.protocol}://${req.get('host')}/${url.code}` };
+  return { ...url, shortUrl: buildShortUrl(req, url.code) };
 }
 
 export function createUrlsRouter(service: UrlsService, requireAuth: RequestHandler): Router {
@@ -32,7 +37,7 @@ export function createUrlsRouter(service: UrlsService, requireAuth: RequestHandl
   return router;
 }
 
-export function createRedirectRouter(service: UrlsService): Router {
+export function createRedirectRouter(service: UrlsService, analytics: AnalyticsService): Router {
   const router = Router();
 
   // 302 y no 301: el navegador no la cachea, así cada visita pasa por el servidor.
@@ -42,7 +47,16 @@ export function createRedirectRouter(service: UrlsService): Router {
       next();
       return;
     }
-    res.redirect(302, service.resolve(req.params.code));
+    const target = service.resolve(req.params.code);
+    // HEAD lo usan comprobadores de enlaces y previsualizaciones: no es una visita.
+    if (req.method === 'GET') {
+      analytics.recordClick(req.params.code, {
+        ip: req.ip,
+        referrer: req.get('referer'),
+        userAgent: req.get('user-agent'),
+      });
+    }
+    res.redirect(302, target);
   });
 
   return router;

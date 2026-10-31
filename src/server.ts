@@ -7,9 +7,14 @@ if (!jwtSecret) {
   console.error('Falta la variable de entorno JWT_SECRET (ver .env.example)');
   process.exit(1);
 }
+const clickHashSecret = process.env.CLICK_HASH_SECRET;
 const db = createDatabase(process.env.DATABASE_PATH ?? 'snap.db');
 
-const server = createApp({ db, jwtSecret }).listen(port, () => {
+const server = createApp({
+  db,
+  jwtSecret,
+  ...(clickHashSecret ? { clickHashSecret } : {}),
+}).listen(port, () => {
   console.log(`Snap escuchando en http://localhost:${port}`);
 });
 
