@@ -5,3 +5,4 @@ dist/
 .env
 *.db-wal
 *.db-shm
+CLAUDE.local.md
