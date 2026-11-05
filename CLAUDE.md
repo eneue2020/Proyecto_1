@@ -75,6 +75,10 @@ tests/                    — tests de vitest + supertest, un archivo por módul
 
 ## Git
 - Branch principal: main
-- Feature branches: feat/nombre-corto
+- Ramas con prefijo según el tipo de cambio (alineado con Conventional Commits):
+  - `feat/nombre-corto`: funcionalidad nueva
+  - `fix/nombre-corto`: corrección de bugs
+  - `docs/nombre-corto`: solo documentación
+  - `chore/nombre-corto`: mantenimiento, dependencias, configuración
 - NUNCA commitear directamente a main
 
